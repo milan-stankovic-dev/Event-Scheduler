@@ -12,7 +12,6 @@ public class Main {
         try {
             val menuHandler = MenuHandler.getInstance();
             menuHandler.runMenu();
-
         } catch (IOException eof) {
             log.error("There was an error related to user menu inputs. Error contents: ${}",
                     eof.getMessage());

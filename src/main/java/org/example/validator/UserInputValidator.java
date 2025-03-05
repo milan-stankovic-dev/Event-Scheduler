@@ -24,7 +24,7 @@ public class UserInputValidator {
             val hours = Integer.parseInt(tokens[0].trim());
             val minutes = Integer.parseInt(tokens[1].trim());
 
-            return hours > 0 && hours < 24 && minutes > 0 &&
+            return hours >= 0 && hours < 24 && minutes >= 0 &&
                     minutes < 59;
         } catch (Throwable ignored) {
             return false;

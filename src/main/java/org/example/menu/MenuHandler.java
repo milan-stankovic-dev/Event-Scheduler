@@ -12,8 +12,11 @@ import java.io.InputStreamReader;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static org.example.date_format.DateFormats.HUMAN_READABLE_TIME_FORMAT;
@@ -45,16 +48,12 @@ public class MenuHandler {
     private void callServiceAccordingToInput(String input) {
         switch (input) {
             case "1":
-                boolean successfulSave;
-                do {
-                    successfulSave = getEventFromUserAndSaveIt();
-                } while (!successfulSave);
+                continuousPromptsAndAction(this::reAttemptOperationUnlessSuccessful,
+                        this::getEventFromUserAndSaveIt);
                 break;
             case "2":
-                boolean successfulRemoval;
-                do {
-                    successfulRemoval = removeEventByUserPromptTime();
-                } while (!successfulRemoval);
+                continuousPromptsAndAction(this::reAttemptOperationUnlessSuccessful,
+                        this::removeEventByUserPromptTime);
                 break;
             case "3":
                 final Optional<Event> evt = getEventByPromptingUserForDate();
@@ -70,6 +69,37 @@ public class MenuHandler {
                 System.out.println(GOODBYE_MESSAGE);
                 break;
         }
+    }
+
+    private void continuousPromptsAndAction(Consumer<BooleanSupplier> action,
+                                            BooleanSupplier operationFunc) {
+        boolean shouldContinue;
+        do {
+            action.accept(operationFunc);
+            System.out.println(RE_ENTER_EVENT_PROMPT);
+            shouldContinue = promptUserForYesOrNo();
+        } while(shouldContinue);
+    }
+
+    private boolean promptUserForYesOrNo() {
+        val validChoices = List.of("Y", "N");
+        String userChoice;
+        boolean userChoseYorN;
+        do {
+            try {
+                userChoice = reader.readLine().trim().toUpperCase();
+            } catch (IOException ignored) { userChoice = ""; }
+            userChoseYorN = validChoices.contains(userChoice);
+        } while(!userChoseYorN);
+
+        return userChoice.equals("Y");
+    }
+
+    private void reAttemptOperationUnlessSuccessful(BooleanSupplier operation) {
+        boolean successfulSave;
+        do {
+            successfulSave = operation.getAsBoolean();
+        } while (!successfulSave);
     }
 
     private Optional<Event> getEventByPromptingUserForDate() {
@@ -155,9 +185,18 @@ public class MenuHandler {
         return new Event(startingTime, endingTime, eventName, eventDescription);
     }
 
-    private LocalDateTime getDateTimeFromString(String input) {
+    private LocalDateTime getDateTimeFromString(String input) throws IOException {
         final LocalDate today = LocalDate.now();
-        final LocalTime startingTime = LocalTime.parse(input, HUMAN_READABLE_TIME_FORMAT);
+        LocalTime startingTime = null;
+
+        while (startingTime == null) {
+            try {
+                startingTime = LocalTime.parse(input, HUMAN_READABLE_TIME_FORMAT);
+            } catch (DateTimeParseException e) {
+                System.out.println(WRONG_DATE_FORMAT_MESSAGE);
+                input = reader.readLine().trim();
+            }
+        }
 
         return LocalDateTime.of(today, startingTime);
     }

@@ -31,4 +31,6 @@ public interface MenuMessages {
                 Event start must be after the current moment and before the event is set to end.
             """;
     String WRONG_DATE_FORMAT_MESSAGE = "Your time input is not valid. Try again. New input:";
+    String RE_ENTER_EVENT_PROMPT = "Would you like to repeat this action for more events? " +
+            "[Y] [N]";
 }

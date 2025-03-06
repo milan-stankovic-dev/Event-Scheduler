@@ -16,12 +16,28 @@ import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Connects liquibase to the database in order to run scripts
+ */
 public class LiquibaseIntegration {
+    /**
+     * Singleton instance
+     */
     @Getter
     private static final LiquibaseIntegration instance = new LiquibaseIntegration();
+    /**
+     * Private singleton constructor
+     */
     private LiquibaseIntegration() { }
+    /**
+     * Database connection credentials
+     */
     private final DBCredentials credentials = DBCredentials.getInstance();
-
+    /**
+     * Runs all available liquibase SQL scripts.
+      * @param changelogPath Path to the 'db.changelog-master.xml' file
+     * @return True if liquibase managed to connect and/or run all the scripts, false otherwise
+     */
     public boolean runLiquibaseScripts(String changelogPath) {
         final ConnectionFactory connFactory = ConnectionFactory.getInstance();
 

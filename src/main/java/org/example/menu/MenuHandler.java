@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static org.example.date_format.DateFormats.HUMAN_READABLE_TIME_FORMAT;
+import static org.example.menu.MenuMessages.*;
 
 public class MenuHandler {
     private final List<String> VALID_MENU_CHOICES = List.of(
@@ -31,25 +32,14 @@ public class MenuHandler {
     private final EventService service = EventService.getInstance();
 
     public void runMenu() throws IOException {
-        System.out.println("Welcome to the Event Scheduler app! " +
-                "This app allow you to add, remove and view scheduled events.\n");
+        System.out.println(WELCOME_MESSAGE);
         var userChoice = "";
 
         do {
-            System.out.println("""
-                    Type [1] to add new events.
-                    Type [2] to remove events.
-                    Type [3] to search events by start time.
-                    Type [4] to list all scheduled events.
-                    Type any other key to quit application.
-                    
-                    Your choice:
-                    """);
+            System.out.println(MAIN_MENU);
                 userChoice = getUserMenuModeInput();
                 callServiceAccordingToInput(userChoice);
         } while(VALID_MENU_CHOICES.contains(userChoice));
-
-        System.out.println("Thank you for using our program. Goodbye!");
     }
 
     private void callServiceAccordingToInput(String input) {
@@ -69,7 +59,7 @@ public class MenuHandler {
             case "3":
                 final Optional<Event> evt = getEventByPromptingUserForDate();
                 if(evt.isPresent()) {
-                    System.out.println("EVENT FOUND: ");
+                    System.out.println(EVENT_FOUND_MESSAGE);
                     System.out.println(evt.get());
                 }
                 break;
@@ -77,8 +67,7 @@ public class MenuHandler {
                 service.displayAllEvents();
                 break;
             default:
-                System.out.println("Thank you for using our app! " +
-                        "We welcome you back anytime!");
+                System.out.println(GOODBYE_MESSAGE);
                 break;
         }
     }
@@ -88,7 +77,7 @@ public class MenuHandler {
             final LocalDateTime dateTime = getDateTimeFromPrompt();
             return service.getByStart(dateTime);
         } catch( Throwable ignored ) {
-            System.out.println("Could not find event by start date. No event scheduled.");
+            System.out.println(NO_EVENT_FOUND_MESSAGE);
             return Optional.empty();
         }
     }
@@ -97,17 +86,17 @@ public class MenuHandler {
         Event newEvent;
         try {
              newEvent = getNewEventByPromptingUser();
-        } catch (IOException | IllegalArgumentException ex) {
+        } catch (IOException ex) {
             System.out.printf("Error occurred! %s\n", ex.getMessage());
             return false;
         }
         val isSaveSuccessful = service.addEvent(newEvent);
 
         if(isSaveSuccessful) {
-            System.out.println("Event saved successfully!");
+            System.out.println(EVENT_SAVED_MESSAGE);
             System.out.println(newEvent);
         }else {
-            System.out.println("Event was not properly saved. Please try again.");
+            System.out.println(EVENT_NOT_SAVED_MESSAGE);
         }
 
         return isSaveSuccessful;
@@ -115,50 +104,53 @@ public class MenuHandler {
 
     private LocalDateTime getDateTimeFromPrompt() throws IOException {
         return getDateTimeFromString(
-                getProperInputFromUser("Please enter the starting time of the event to be deleted." +
-                        " Proper format is 'HH:mm'", validator::isTimeInputValid));
+                getProperInputFromUser(ENTER_START_DATE_MESSAGE,
+                        validator::isTimeInputValid));
     }
 
     private boolean removeEventByUserPromptTime() {
-        LocalDateTime evtStart = null;
+        LocalDateTime evtStart;
         boolean removalSuccessful;
         try {
             evtStart = getDateTimeFromPrompt();
             removalSuccessful = service.removeEvent(evtStart);
 
             if(removalSuccessful) {
-                System.out.println("Event removed successfully.");
+                System.out.println(EVENT_DELETED_MESSAGE);
                 return true;
             }
 
-            System.out.println("Event could not be removed. Try again.");
+            System.out.println(EVENT_NOT_DELETED_MESSAGE);
             return false;
 
         } catch (IOException ignored) {
-            System.out.println("Input wrong. Try again.");
+            System.out.println(WRONG_INPUT_MESSAGE);
         }
 
         return false;
     }
 
     private Event getNewEventByPromptingUser() throws IOException {
-        val eventName = getProperInputFromUser("Please enter the event name: ",
+        val eventName = getProperInputFromUser(ENTER_NAME_MESSAGE,
                 validator::isStringInputValid);
-        val eventDescription = getProperInputFromUser("Please enter the event description:",
+        val eventDescription = getProperInputFromUser(ENTER_DESCRIPTION_MESSAGE,
                 validator::isStringInputValid);
-        val startTimeStringToken = getProperInputFromUser(
-                "Input the starting time for said event. Proper format is 'HH:mm'.",
-                validator::isTimeInputValid);
-        val endingTimeStringToken = getProperInputFromUser(
-                "Input the ending time for said event. Proper format is 'HH:mm'.",
-                validator::isTimeInputValid);
 
-        final LocalDateTime startingTime = getDateTimeFromString(startTimeStringToken);
-        final LocalDateTime endingTime = getDateTimeFromString(endingTimeStringToken);
+        LocalDateTime startingTime, endingTime;
+        String startTimeStringToken, endingTimeStringToken;
 
-        if(startingTime.isAfter(endingTime)) {
-            throw new IllegalArgumentException("Wrong input. Before date must not be after date. Try again.");
-        }
+        do {
+            startTimeStringToken = getProperInputFromUser(ENTER_START_DATE_MESSAGE, validator::isTimeInputValid);
+            endingTimeStringToken = getProperInputFromUser(ENTER_END_DATE_MESSAGE, validator::isTimeInputValid);
+
+            startingTime = getDateTimeFromString(startTimeStringToken);
+            endingTime = getDateTimeFromString(endingTimeStringToken);
+
+            if (startingTime.isBefore(LocalDateTime.now()) || startingTime.isAfter(endingTime)) {
+                System.out.println(DATE_MISMATCH_ERROR_MESSAGE);
+            }
+
+        } while (startingTime.isBefore(LocalDateTime.now()) || startingTime.isAfter(endingTime));
 
         return new Event(startingTime, endingTime, eventName, eventDescription);
     }
@@ -179,7 +171,7 @@ public class MenuHandler {
         do {
             userInput = reader.readLine().trim();
             isValidInput = validatorFunc.test(userInput);
-            if(!isValidInput) { System.out.println("Your input is not valid. Try again. New input: "); }
+            if(!isValidInput) { System.out.println(WRONG_DATE_FORMAT_MESSAGE); }
 
         } while(!isValidInput);
 

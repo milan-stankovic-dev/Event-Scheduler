@@ -9,5 +9,5 @@ public interface EventService {
     Optional<Event> getByStart(LocalDateTime start);
     Set<Event> getByName(String name);
     boolean removeEvent(LocalDateTime start);
-    void displayAllEvents();
+    Set<Event> getAllEvents();
 }

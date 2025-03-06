@@ -49,13 +49,7 @@ public class EventServiceInMemory implements EventService {
     }
 
     @Override
-    public void displayAllEvents() {
-        if(savedEvents.isEmpty()) {
-            System.out.println("There are no events scheduled for today.\n");
-            return;
-        }
-        System.out.println("Here is a list of all scheduled events, sorted by start date: ");
-        savedEvents.forEach(System.out::println);
-        System.out.println();
+    public Set<Event> getAllEvents() {
+        return savedEvents;
     }
 }

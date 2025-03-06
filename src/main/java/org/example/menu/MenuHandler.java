@@ -3,7 +3,8 @@ package org.example.menu;
 import lombok.Getter;
 import lombok.val;
 import org.example.events.Event;
-import org.example.events.impl.EventServiceInMemory;
+import org.example.events.EventService;
+import org.example.events.EventServiceProvider;
 import org.example.validator.UserInputValidator;
 
 import java.io.BufferedReader;
@@ -32,7 +33,7 @@ public class MenuHandler {
     private final BufferedReader reader =
             new BufferedReader(new InputStreamReader(System.in));
     private final UserInputValidator validator = UserInputValidator.getInstance();
-    private final EventServiceInMemory service = EventServiceInMemory.getInstance();
+    private final EventService service = EventServiceProvider.getInstance().getEventService();
 
     public void runMenu() throws IOException {
         System.out.println(WELCOME_MESSAGE);
@@ -63,7 +64,13 @@ public class MenuHandler {
                 }
                 break;
             case "4":
-                service.displayAllEvents();
+                val eventsFound = service.getAllEvents();
+                if(eventsFound == null || eventsFound.isEmpty()) {
+                    System.out.println(EVENTS_NOT_FOUND_MESSAGE);
+                } else {
+                    System.out.println(EVENTS_FOUND_MESSAGE);
+                    eventsFound.forEach(System.out::println);
+                }
                 break;
             default:
                 System.out.println(GOODBYE_MESSAGE);

@@ -4,6 +4,7 @@ import lombok.Cleanup;
 import lombok.Getter;
 import lombok.val;
 import org.example.db.ConnectionFactory;
+import org.example.db.DBCredentials;
 import org.example.events.Event;
 import org.example.events.EventService;
 
@@ -20,35 +21,42 @@ public class EventServiceDB implements EventService {
     private EventServiceDB() { }
 
     private final ConnectionFactory connectionFactory = ConnectionFactory.getInstance();
+    private final DBCredentials credentials = DBCredentials.getInstance();
 
     @Override
     public boolean addEvent(Event newEvent) {
-//        if(newEvent == null) {
-//            return false;
-//        }
-//        @Cleanup
-//        val conn = connectionFactory.establishDBConnection();
-//
-//        final String sql = """
-//                            INSERT INTO event(event_name,
-//                            event_description, start_time, end_time)
-//                            VALUES (?,?,?,?);
-//                            """;
-//        try {
-//            @Cleanup
-//            final PreparedStatement statement =
-//                    conn.prepareStatement(sql);
-//            statement.setString(1, newEvent.name());
-//            statement.setString(2, newEvent.description());
-//            statement.setTimestamp(3,
-//                    Timestamp.valueOf(newEvent.start()));
-//            statement.setTimestamp(4,
-//                    Timestamp.valueOf(newEvent.end()));
-//            statement.executeUpdate();
-//
-//        } catch (SQLException e) {
-//            return false;
-//        }
+        if(newEvent == null) {
+            return false;
+        }
+
+        try {
+        @Cleanup
+        val conn = connectionFactory.establishDBConnection(
+                credentials.getURL(),
+                credentials.getUSER(),
+                credentials.getPASS()
+        );
+
+        final String sql = """
+                            INSERT INTO event(event_name,
+                            event_description, start_time, end_time)
+                            VALUES (?,?,?,?);
+                            """;
+            @Cleanup
+            final PreparedStatement statement =
+                    conn.prepareStatement(sql);
+            statement.setString(1, newEvent.name());
+            statement.setString(2, newEvent.description());
+            statement.setTimestamp(3,
+                    Timestamp.valueOf(newEvent.start()));
+            statement.setTimestamp(4,
+                    Timestamp.valueOf(newEvent.end()));
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            System.out.printf("Database error occurred. Could not save. Error: %s\n", e.getMessage());
+            return false;
+        }
 
         return true;
     }

@@ -2,7 +2,6 @@ package org.example.liquibase;
 
 import liquibase.Contexts;
 import liquibase.Liquibase;
-import liquibase.database.DatabaseConnection;
 import liquibase.database.core.PostgresDatabase;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
@@ -10,12 +9,10 @@ import lombok.Cleanup;
 import lombok.Getter;
 import lombok.val;
 import org.example.db.ConnectionFactory;
-import org.example.db.DBConfig;
+import org.example.db.DBCredentials;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.sql.Connection;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,11 +20,10 @@ public class LiquibaseIntegration {
     @Getter
     private static final LiquibaseIntegration instance = new LiquibaseIntegration();
     private LiquibaseIntegration() { }
+    private final DBCredentials credentials = DBCredentials.getInstance();
 
     public boolean runLiquibaseScripts(String changelogPath) {
-        final DBConfig dotenvConfig = DBConfig.getInstance();
         final ConnectionFactory connFactory = ConnectionFactory.getInstance();
-        final Map<String, String> dotenvVars = dotenvConfig.getDotEnvVars();
 
         final Logger liquibaseLogger = Logger.getLogger("liquibase");
         liquibaseLogger.setLevel(Level.OFF);
@@ -44,9 +40,9 @@ public class LiquibaseIntegration {
         try {
             @Cleanup
             val connection = connFactory.establishDBConnection(
-                    dotenvVars.get("url"),
-                    dotenvVars.get("user"),
-                    dotenvVars.get("pass"));
+                    credentials.getURL(),
+                    credentials.getUSER(),
+                    credentials.getPASS());
             @Cleanup
             val liquibaseConnection = new JdbcConnection(connection);
 

@@ -3,7 +3,7 @@ package org.example.menu;
 import lombok.Getter;
 import lombok.val;
 import org.example.events.Event;
-import org.example.events.EventService;
+import org.example.events.impl.EventServiceInMemory;
 import org.example.validator.UserInputValidator;
 
 import java.io.BufferedReader;
@@ -32,7 +32,7 @@ public class MenuHandler {
     private final BufferedReader reader =
             new BufferedReader(new InputStreamReader(System.in));
     private final UserInputValidator validator = UserInputValidator.getInstance();
-    private final EventService service = EventService.getInstance();
+    private final EventServiceInMemory service = EventServiceInMemory.getInstance();
 
     public void runMenu() throws IOException {
         System.out.println(WELCOME_MESSAGE);

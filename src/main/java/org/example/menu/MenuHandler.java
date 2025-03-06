@@ -6,21 +6,21 @@ import org.example.events.Event;
 import org.example.events.EventService;
 import org.example.validator.UserInputValidator;
 
-import javax.swing.text.html.Option;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import static org.example.date_format.DateFormats.HUMAN_READABLE_TIME_FORMAT;
+
 public class MenuHandler {
     private final List<String> VALID_MENU_CHOICES = List.of(
-            "1", "2", "3");
+            "1", "2", "3", "4");
     @Getter
     private static final MenuHandler instance = new MenuHandler();
 
@@ -74,11 +74,12 @@ public class MenuHandler {
                 }
                 break;
             case "4":
-                System.out.println("All events found: ");
                 service.displayAllEvents();
                 break;
             default:
-                System.out.println("Unknown error occurred. Please test the switch statement.");
+                System.out.println("Thank you for using our app! " +
+                        "We welcome you back anytime!");
+                break;
         }
     }
 
@@ -96,13 +97,15 @@ public class MenuHandler {
         Event newEvent;
         try {
              newEvent = getNewEventByPromptingUser();
-        } catch (IOException ignored) {
+        } catch (IOException | IllegalArgumentException ex) {
+            System.out.printf("Error occurred! %s\n", ex.getMessage());
             return false;
         }
         val isSaveSuccessful = service.addEvent(newEvent);
 
         if(isSaveSuccessful) {
             System.out.println("Event saved successfully!");
+            System.out.println(newEvent);
         }else {
             System.out.println("Event was not properly saved. Please try again.");
         }
@@ -162,8 +165,7 @@ public class MenuHandler {
 
     private LocalDateTime getDateTimeFromString(String input) {
         final LocalDate today = LocalDate.now();
-        final LocalTime startingTime = LocalTime.parse(input,
-                DateTimeFormatter.ofPattern("HH:mm"));
+        final LocalTime startingTime = LocalTime.parse(input, HUMAN_READABLE_TIME_FORMAT);
 
         return LocalDateTime.of(today, startingTime);
     }

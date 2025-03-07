@@ -41,6 +41,7 @@ public class LiquibaseIntegration {
     public boolean runLiquibaseScripts(String changelogPath) {
         final ConnectionFactory connFactory = ConnectionFactory.getInstance();
 
+        // Disables all liquibase related logging
         final Logger liquibaseLogger = Logger.getLogger("liquibase");
         liquibaseLogger.setLevel(Level.OFF);
 
@@ -50,6 +51,7 @@ public class LiquibaseIntegration {
         val byteArrayOutputStream = new ByteArrayOutputStream();
         val printStream = new PrintStream(byteArrayOutputStream);
 
+        // Disables liquibase from printing out to stdout and stderr
         System.setOut(printStream);
         System.setErr(printStream);
 
@@ -74,6 +76,8 @@ public class LiquibaseIntegration {
         } catch (Throwable t) {
             return false;
         } finally {
+            // Returns the ability to print to stdout and stderr once
+            // liquibase has finished
             System.setErr(originalErr);
             System.setOut(originalOut);
         }

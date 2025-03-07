@@ -17,7 +17,6 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static org.example.date_format.DateFormats.HUMAN_READABLE_TIME_FORMAT;
@@ -26,6 +25,7 @@ import static org.example.menu.MenuMessages.*;
 public class MenuHandler {
     private final List<String> VALID_MENU_CHOICES = List.of(
             "1", "2", "3", "4");
+    private final List<String> VALID_CONTINUE_CHOICES = List.of("Y", "N");
     @Getter
     private static final MenuHandler instance = new MenuHandler();
 
@@ -41,7 +41,7 @@ public class MenuHandler {
 
         do {
             System.out.println(MAIN_MENU);
-                userChoice = getUserMenuModeInput();
+                userChoice = readInputFromUser();
                 callServiceAccordingToInput(userChoice);
         } while(VALID_MENU_CHOICES.contains(userChoice));
     }
@@ -49,12 +49,10 @@ public class MenuHandler {
     private void callServiceAccordingToInput(String input) {
         switch (input) {
             case "1":
-                continuousPromptsAndAction(this::reAttemptOperationUnlessSuccessful,
-                        this::getEventFromUserAndSaveIt);
+                promptContinuouslyUntilCRUD(this::getEventFromUserAndSaveIt);
                 break;
             case "2":
-                continuousPromptsAndAction(this::reAttemptOperationUnlessSuccessful,
-                        this::removeEventByUserPromptTime);
+                promptContinuouslyUntilCRUD(this::removeEventByUserPromptTime);
                 break;
             case "3":
                 final Optional<Event> evt = getEventByPromptingUserForDate();
@@ -78,25 +76,24 @@ public class MenuHandler {
         }
     }
 
-    private void continuousPromptsAndAction(Consumer<BooleanSupplier> action,
-                                            BooleanSupplier operationFunc) {
+    private void promptContinuouslyUntilCRUD(BooleanSupplier operationFunc) {
         boolean shouldContinue;
         do {
-            action.accept(operationFunc);
+            reAttemptOperationUnlessSuccessful(operationFunc);
             System.out.println(RE_ENTER_EVENT_PROMPT);
             shouldContinue = promptUserForYesOrNo();
         } while(shouldContinue);
     }
 
     private boolean promptUserForYesOrNo() {
-        val validChoices = List.of("Y", "N");
         String userChoice;
         boolean userChoseYorN;
         do {
-            try {
-                userChoice = reader.readLine().trim().toUpperCase();
-            } catch (IOException ignored) { userChoice = ""; }
-            userChoseYorN = validChoices.contains(userChoice);
+            userChoice = readInputFromUserDefaultToEmpty();
+            userChoseYorN = VALID_CONTINUE_CHOICES.contains(userChoice);
+            if(!userChoseYorN) {
+                System.out.println(Y_OR_N_ONLY_WARNING);
+            }
         } while(!userChoseYorN);
 
         return userChoice.equals("Y");
@@ -201,7 +198,7 @@ public class MenuHandler {
                 startingTime = LocalTime.parse(input, HUMAN_READABLE_TIME_FORMAT);
             } catch (DateTimeParseException e) {
                 System.out.println(WRONG_DATE_FORMAT_MESSAGE);
-                input = reader.readLine().trim();
+                input = readInputFromUser();
             }
         }
 
@@ -215,16 +212,24 @@ public class MenuHandler {
         String userInput;
         boolean isValidInput;
         do {
-            userInput = reader.readLine().trim();
+            userInput = readInputFromUser();
             isValidInput = validatorFunc.test(userInput);
-            if(!isValidInput) { System.out.println(WRONG_DATE_FORMAT_MESSAGE); }
+            if(!isValidInput) { System.out.println(WRONG_INPUT_MESSAGE); }
 
         } while(!isValidInput);
 
         return userInput;
     }
 
-    private String getUserMenuModeInput() throws IOException {
+    private String readInputFromUser() throws IOException {
         return reader.readLine().trim();
+    }
+
+    private String readInputFromUserDefaultToEmpty() {
+        try {
+            return readInputFromUser();
+        } catch (IOException ignored) {
+            return "";
+        }
     }
 }

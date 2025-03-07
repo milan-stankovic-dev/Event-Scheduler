@@ -3,6 +3,9 @@ package org.example.validator;
 import lombok.Getter;
 import lombok.val;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 /**
  * Validates user inputs
  */
@@ -31,6 +34,20 @@ public class UserInputValidator {
      */
     public boolean isTimeInputValid(String input) {
         return isNotBlankOrNull(input) && isPatternCorrect(input);
+    }
+    /**
+     * Checks if the starting and ending times are valid for given event.
+     * @param start Starting LocalDateTime for the event
+     * @param end Ending LocalDateTime for the event
+     * @return If the starting time is before present, or if the times overlap, or if the event is
+     * set to end before it starts returns false, true otherwise.
+     */
+    public boolean areStartEndTimesValid(LocalDateTime start, LocalDateTime end) {
+        if(start.isBefore(LocalDateTime.now())) { return false; }
+        if(start.isEqual(end)) { return false; }
+        if(start.isAfter(end)) { return false; }
+
+        return true;
     }
 
     private boolean isPatternCorrect(String input) {

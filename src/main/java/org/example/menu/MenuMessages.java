@@ -40,4 +40,5 @@ public interface MenuMessages {
     String EVENTS_FOUND_MESSAGE = "Here is a list of all scheduled events, sorted by start time: ";
     String EVENTS_NOT_FOUND_MESSAGE = "Could not find any scheduled events.";
     String Y_OR_N_ONLY_WARNING = "Please enter [Y] or [N] to continue.";
+    String BACK_TO_MENU_GREETING = "Welcome back to main menu.";
 }

@@ -5,6 +5,7 @@ import lombok.val;
 import org.example.events.Event;
 import org.example.events.EventService;
 import org.example.events.EventServiceProvider;
+import org.example.exception.UserQuitException;
 import org.example.validator.UserInputValidator;
 
 import java.io.BufferedReader;
@@ -68,8 +69,12 @@ public class MenuHandler {
 
         do {
             System.out.println(MAIN_MENU);
+            try {
                 userChoice = readInputFromUserDefaultToEmpty();
                 callServiceAccordingToInput(userChoice);
+            } catch (UserQuitException ex) {
+                System.out.println(ex.getMessage());
+            }
         } while(VALID_MENU_CHOICES.contains(userChoice));
     }
 
@@ -288,7 +293,7 @@ public class MenuHandler {
      * @throws IOException if the user's input is invalid
      */
     private String getProperInputFromUser(String displayText, Predicate<String> validatorFunc)
-                throws IOException {
+            throws IOException {
         System.out.println(displayText);
 
         String userInput;
@@ -308,7 +313,11 @@ public class MenuHandler {
      * @throws IOException If the user's input is invalid (i.e. issues with the input stream, crashes etc.)
      */
     private String readInputFromUser() throws IOException {
-        return reader.readLine().trim();
+        final String input = reader.readLine().trim();
+        if("Q".equalsIgnoreCase(input)) {
+            throw new UserQuitException(BACK_TO_MENU_GREETING);
+        }
+        return input;
     }
     /**
      * Defaults all malformed user inputs to an empty string

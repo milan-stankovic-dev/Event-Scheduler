@@ -17,14 +17,30 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Database implementation of the EventService interface
+ */
 public class EventServiceDB implements EventService {
+    /**
+     * Singleton instance
+     */
     @Getter
     private static final EventServiceDB instance = new EventServiceDB();
+    /**
+     * Private singleton constructor
+     */
     private EventServiceDB() { }
-
+    /**
+     * Connection factory instance
+     */
     private final ConnectionFactory connectionFactory = ConnectionFactory.getInstance();
+    /**
+     * Database credentials instance
+     */
     private final DBCredentials credentials = DBCredentials.getInstance();
-
+    /**
+     * Database error message
+     */
     private final String DB_ERROR_MESSAGE = "Database error occurred. Could not complete task. Error: ";
 
     @Override

@@ -8,11 +8,23 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * In-memory implementation of the EventService interface
+ */
 public class EventServiceInMemory implements EventService {
+    /**
+     * Sorted collection of all saved events. Sorted by starting date-time
+     */
     private final NavigableSet<Event> savedEvents = new TreeSet<>(
             Comparator.comparing(Event::start));
+    /**
+     * Singleton instance
+     */
     @Getter
     private static final EventServiceInMemory instance = new EventServiceInMemory();
+    /**
+     * Private singleton constructor
+     */
     private EventServiceInMemory() { }
 
     public boolean addEvent(Event newEvent) {

@@ -11,14 +11,15 @@ public interface MenuMessages {
                     Type [1] to add new events.
                     Type [2] to remove events.
                     Type [3] to search events by start time.
-                    Type [4] to list all scheduled events.
+                    Type [4] to search events by name.
+                    Type [5] to list all scheduled events.
                     Type any other key to quit application.
                     
                     Your choice:
                     """;
     String GOODBYE_MESSAGE = "Thank you for using our app! " +
             "We welcome you back anytime!";
-    String NO_EVENT_FOUND_MESSAGE = "Could not find event by start date. No event scheduled.";
+    String NO_EVENT_FOUND_MESSAGE = "Could not find event with those criteria. No event scheduled.";
     String EVENT_FOUND_MESSAGE = "EVENT FOUND: ";
     String EVENT_SAVED_MESSAGE =  "Event saved successfully!";
     String EVENT_NOT_SAVED_MESSAGE = "Event was not properly saved. Please try again.";

@@ -51,6 +51,7 @@ public class UserInputValidator {
     }
 
     private boolean isPatternCorrect(String input) {
+        if(input == null || input.length() != 5) { return false; }
         try {
             final String[] tokens = input.split(":");
             if(tokens.length != 2) { return false; }

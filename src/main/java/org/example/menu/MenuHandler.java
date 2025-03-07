@@ -17,6 +17,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
@@ -32,7 +33,7 @@ public class MenuHandler {
      * new menu dialog
      */
     private final List<String> VALID_MENU_CHOICES = List.of(
-            "1", "2", "3", "4");
+            "1", "2", "3", "4", "5");
     /**
      * Yes or no navigation inputs to check for user's consent
      */
@@ -62,15 +63,16 @@ public class MenuHandler {
     private final EventService service = EventServiceProvider.getInstance().getEventService();
     /**
      * Main menu method of this class. Runs all other menus
+     * @throws IOException if I/O stream fails
      */
-    public void runMenu() {
+    public void runMenu() throws IOException {
         System.out.println(WELCOME_MESSAGE);
         var userChoice = "";
 
         do {
             System.out.println(MAIN_MENU);
             try {
-                userChoice = readInputFromUserDefaultToEmpty();
+                userChoice = readInputFromUser();
                 callServiceAccordingToInput(userChoice);
             } catch (UserQuitException ex) {
                 System.out.println(ex.getMessage());
@@ -83,11 +85,13 @@ public class MenuHandler {
      *  * 1 -> saves new event(s)
      *  * 2 -> removes existing event(s)
      *  * 3 -> gets event by starting date time
-     *  * 4 -> finds all saved events
+     *  * 4 -> gets event(s) by name
+     *  * 5 -> finds all saved events
      *  * all other inputs -> quits the app
      * @param input User input
+     * @throws IOException if I/O stream fails
      */
-    private void callServiceAccordingToInput(String input) {
+    private void callServiceAccordingToInput(String input) throws IOException {
         switch (input) {
             case "1":
                 promptContinuouslyUntilCRUD(this::getEventFromUserAndSaveIt);
@@ -100,9 +104,19 @@ public class MenuHandler {
                 if(evt.isPresent()) {
                     System.out.println(EVENT_FOUND_MESSAGE);
                     System.out.println(evt.get());
+                } else {
+                    System.out.println(NO_EVENT_FOUND_MESSAGE);
                 }
                 break;
             case "4":
+                final Set<Event> events = getEventsByPromptingUserForName();
+                if(events.isEmpty()) {
+                    System.out.println(NO_EVENT_FOUND_MESSAGE);
+                } else {
+                    events.forEach(System.out::println);
+                }
+                break;
+            case "5":
                 val eventsFound = service.getAllEvents();
                 if(eventsFound == null || eventsFound.isEmpty()) {
                     System.out.println(EVENTS_NOT_FOUND_MESSAGE);
@@ -121,8 +135,9 @@ public class MenuHandler {
      * database (CUD operations)
      * @param operationFunc Operation to be executed. Supposed to return true if operation
      *                      was successful, false otherwise.
+     * @throws IOException if I/O stream fails
      */
-    private void promptContinuouslyUntilCRUD(BooleanSupplier operationFunc) {
+    private void promptContinuouslyUntilCRUD(BooleanSupplier operationFunc) throws IOException {
         boolean shouldContinue;
         do {
             reAttemptOperationUnlessSuccessful(operationFunc);
@@ -135,12 +150,13 @@ public class MenuHandler {
      * Used to check for user's consent.
      * @return True if user has typed 'Y' after continuous prompting,
      * false if user has typed 'N' after continuous prompting.
+     * @throws IOException if I/O stream fails
      */
-    private boolean promptUserForYesOrNo() {
+    private boolean promptUserForYesOrNo() throws IOException {
         String userChoice;
         boolean userChoseYorN;
         do {
-            userChoice = readInputFromUserDefaultToEmpty().toUpperCase();
+            userChoice = readInputFromUser().toUpperCase();
             userChoseYorN = VALID_CONTINUE_CHOICES.contains(userChoice);
             if(!userChoseYorN) {
                 System.out.println(Y_OR_N_ONLY_WARNING);
@@ -176,6 +192,17 @@ public class MenuHandler {
         }
     }
     /**
+     * Gets events from EventService by continuously prompting user until they input a valid
+     * event name
+     * @return Set of events with given name, from EventService
+     * @throws IOException if I/O stream fails
+     */
+    private Set<Event> getEventsByPromptingUserForName() throws IOException {
+        final String name = getProperInputFromUser(ENTER_NAME_MESSAGE, validator::isStringInputValid);
+
+        return service.getByName(name);
+    }
+    /**
      * Prompts the user to create a new event object, then schedules and saves it.
      * @return True if scheduling was successful, false otherwise
      */
@@ -201,13 +228,14 @@ public class MenuHandler {
     /**
      * Continuously prompts user to get a LocalDateTime instance
      * @return LocalDateTime instance gathered from user's input
-     * @throws IOException If user's input is invalid
+     * @throws IOException if I/O stream fails
      */
     private LocalDateTime getDateTimeFromPrompt() throws IOException {
         return getDateTimeFromString(
                 getProperInputFromUser(ENTER_START_DATE_MESSAGE,
                         validator::isTimeInputValid));
     }
+
     /**
      * Calls the EventService to remove an event at a date-time
      * prompted from the user.
@@ -237,7 +265,7 @@ public class MenuHandler {
     /**
      * Gets the event object from the user by continuous prompting and error handling.
      * @return Event object gathered from the user's input
-     * @throws IOException If the user's input is invalid
+     * @throws IOException if I/O stream fails
      */
     private Event getNewEventByPromptingUser() throws IOException {
         val eventName = getProperInputFromUser(ENTER_NAME_MESSAGE,
@@ -270,7 +298,7 @@ public class MenuHandler {
      * for date part
      * @param input User's text input
      * @return LocalDateTime instance
-     * @throws IOException if the user's input is invalid
+     * @throws IOException if I/O stream fails
      */
     private LocalDateTime getDateTimeFromString(String input) throws IOException {
         final LocalDate today = LocalDate.now();
@@ -292,7 +320,7 @@ public class MenuHandler {
      * @param displayText Text to display to the user
      * @param validatorFunc Function that validates user's input
      * @return Correct user input as a String
-     * @throws IOException if the user's input is invalid
+     * @throws IOException if I/O stream fails
      */
     private String getProperInputFromUser(String displayText, Predicate<String> validatorFunc)
             throws IOException {
@@ -312,7 +340,7 @@ public class MenuHandler {
     /**
      * Reads input from the user
      * @return User's input
-     * @throws IOException If the user's input is invalid (i.e. issues with the input stream, crashes etc.)
+     * @throws IOException if I/O stream fails
      */
     private String readInputFromUser() throws IOException {
         final String input = reader.readLine().trim();
@@ -320,16 +348,5 @@ public class MenuHandler {
             throw new UserQuitException(BACK_TO_MENU_GREETING);
         }
         return input;
-    }
-    /**
-     * Defaults all malformed user inputs to an empty string
-     * @return User's input or empty string if user's input is malformed
-     */
-    private String readInputFromUserDefaultToEmpty() {
-        try {
-            return readInputFromUser();
-        } catch (IOException ignored) {
-            return "";
-        }
     }
 }

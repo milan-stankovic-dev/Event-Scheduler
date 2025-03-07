@@ -133,7 +133,7 @@ public class EventServiceDB implements EventService {
             final String sql = """
                     SELECT *
                     FROM event
-                    WHERE event_name = '?'
+                    WHERE event_name = ?
                     """;
 
             @Cleanup

@@ -17,6 +17,14 @@ public class Main {
      */
     public static void main(String[] args) {
         val menuHandler = MenuHandler.getInstance();
-        menuHandler.runMenu();
+        try {
+            menuHandler.runMenu();
+        } catch (IOException e) {
+            System.out.println("Major I/O related error occurred! " +
+                    "Please make sure your terminal is operating correctly.");
+        } catch (Throwable t) {
+            System.out.println("Unknown Error occurred and the program had to stop! " +
+                    "Please contact tech support. " + t.getMessage());
+        }
     }
 }

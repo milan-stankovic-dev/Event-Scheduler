@@ -13,6 +13,9 @@ import java.time.format.DateTimeFormatter;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test class for UserInputValidator
+ */
 public class UserInputValidatorTest {
     private final UserInputValidator validator = UserInputValidator.getInstance();
 

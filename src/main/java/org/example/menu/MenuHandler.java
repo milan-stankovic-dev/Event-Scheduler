@@ -113,6 +113,7 @@ public class MenuHandler {
                 if(events.isEmpty()) {
                     System.out.println(NO_EVENT_FOUND_MESSAGE);
                 } else {
+                    System.out.println(EVENTS_QUERY_FOUND);
                     events.forEach(System.out::println);
                 }
                 break;

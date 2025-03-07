@@ -38,6 +38,7 @@ public interface MenuMessages {
     String WRONG_DATE_FORMAT_MESSAGE = "Your time input is not valid. Try again. New input:";
     String RE_ENTER_EVENT_PROMPT = "Would you like to repeat this action for more events? " +
             "[Y] [N]";
+    String EVENTS_QUERY_FOUND = "Here is a list of all events with given name:";
     String EVENTS_FOUND_MESSAGE = "Here is a list of all scheduled events, sorted by start time: ";
     String EVENTS_NOT_FOUND_MESSAGE = "Could not find any scheduled events.";
     String Y_OR_N_ONLY_WARNING = "Please enter [Y] or [N] to continue.";

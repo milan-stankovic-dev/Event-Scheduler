@@ -140,7 +140,7 @@ public class MenuHandler {
         String userChoice;
         boolean userChoseYorN;
         do {
-            userChoice = readInputFromUserDefaultToEmpty();
+            userChoice = readInputFromUserDefaultToEmpty().toUpperCase();
             userChoseYorN = VALID_CONTINUE_CHOICES.contains(userChoice);
             if(!userChoseYorN) {
                 System.out.println(Y_OR_N_ONLY_WARNING);
@@ -248,6 +248,7 @@ public class MenuHandler {
         LocalDateTime startingTime, endingTime;
         String startTimeStringToken, endingTimeStringToken;
 
+        boolean areDatesValid;
         do {
             startTimeStringToken = getProperInputFromUser(ENTER_START_DATE_MESSAGE, validator::isTimeInputValid);
             endingTimeStringToken = getProperInputFromUser(ENTER_END_DATE_MESSAGE, validator::isTimeInputValid);
@@ -255,11 +256,12 @@ public class MenuHandler {
             startingTime = getDateTimeFromString(startTimeStringToken);
             endingTime = getDateTimeFromString(endingTimeStringToken);
 
-            if (startingTime.isBefore(LocalDateTime.now()) || startingTime.isAfter(endingTime)) {
+            areDatesValid = validator.areStartEndTimesValid(startingTime, endingTime);
+            if (!areDatesValid) {
                 System.out.println(DATE_MISMATCH_ERROR_MESSAGE);
             }
 
-        } while (startingTime.isBefore(LocalDateTime.now()) || startingTime.isAfter(endingTime));
+        } while (!areDatesValid);
 
         return new Event(startingTime, endingTime, eventName, eventDescription);
     }

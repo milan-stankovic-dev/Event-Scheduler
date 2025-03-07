@@ -16,12 +16,7 @@ public class Main {
      * @param args Command line input args
      */
     public static void main(String[] args) {
-        try {
-            val menuHandler = MenuHandler.getInstance();
-            menuHandler.runMenu();
-        } catch (IOException eof) {
-            log.error("There was an error related to user menu inputs. Error contents: ${}",
-                    eof.getMessage());
-        }
+        val menuHandler = MenuHandler.getInstance();
+        menuHandler.runMenu();
     }
 }

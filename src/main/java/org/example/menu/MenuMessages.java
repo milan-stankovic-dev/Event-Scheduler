@@ -1,5 +1,9 @@
 package org.example.menu;
 
+/**
+ * Houses all the various messages to be shown to the app user
+ * through the terminal menu.
+ */
 public interface MenuMessages {
     String WELCOME_MESSAGE = "Welcome to the Event Scheduler app! " +
             "This app allow you to add, remove and view scheduled events.\n";

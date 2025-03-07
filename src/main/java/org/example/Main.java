@@ -6,8 +6,15 @@ import org.example.menu.MenuHandler;
 
 import java.io.IOException;
 
+/**
+ * Main class for the project
+ */
 @Slf4j
 public class Main {
+    /**
+     * Main method
+     * @param args Command line input args
+     */
     public static void main(String[] args) {
         try {
             val menuHandler = MenuHandler.getInstance();

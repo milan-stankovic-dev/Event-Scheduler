@@ -6,7 +6,8 @@ This is a demo app for scheduling events in Java. It gives its users the ability
     Type [1] to add new events.
     Type [2] to remove events.
     Type [3] to search events by start time.
-    Type [4] to list all scheduled events.
+    Type [4] to search events by name.
+    Type [5] to list all scheduled events.
     Type any other key to quit application.
     
     Your choice:
@@ -45,7 +46,7 @@ has entered an erroneous time, this message is displayed:
 
     Event could not be removed. Try again.
     
-3) The search menu:
+3) The search-by-time menu:
 
         Input the starting time for said event. Proper format is 'HH:mm'. Example: 14:34
         14:40
@@ -62,18 +63,34 @@ has entered an erroneous time, this message is displayed:
 Note: As there is *NO OVERLAP ALLOWED* in scheduled events, every event has a unique starting time. This operation may return up to
 one unique event.
 
-  4) The display all events menu:
+4) The search-by-name menu:
 
-         Here is a list of all scheduled events, sorted by start time: 
-    * name: Team meeting *
-        - description: Discussing the upcoming tasks,
-        - start time: Date: 07.03.2025 at: 14:40,
-        - end time: Date: 07.03.2025 at: 15:00
-    
-    * name: Example Event *
-        - description: Example event description,
-        - start time: Date: 06.03.2025 at: 17:00,
-        - end time: Date: 06.03.2025 at: 17:30
+        Please enter the event name:
+        Team meeting
+        Here is a list of all events with given name:
+        * name: Team meeting *
+            - description: Discussing the upcoming tasks,
+            - start time: Date: 07.03.2025 at: 14:40,
+            - end time: Date: 07.03.2025 at: 15:00
+
+If no events are found, this message is diplayed to the user:
+
+    Could not find event with those criteria. No event scheduled.
+
+Note: Scheduled events do *NOT* have unique names, so this query may return more than one result.
+
+5) The display all events menu:
+
+        Here is a list of all scheduled events, sorted by start time: 
+        * name: Team meeting *
+            - description: Discussing the upcoming tasks,
+            - start time: Date: 07.03.2025 at: 14:40,
+            - end time: Date: 07.03.2025 at: 15:00
+        
+        * name: Example Event *
+            - description: Example event description,
+            - start time: Date: 06.03.2025 at: 17:00,
+            - end time: Date: 06.03.2025 at: 17:30
 
 If the user presses any other key, the app is closed. Pressing 'q' at any time closes the prompt and returns the user to the main menu.
 Pressing any other key in the main menu closes the app with this message:

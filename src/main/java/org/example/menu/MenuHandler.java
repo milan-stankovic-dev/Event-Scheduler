@@ -22,30 +22,66 @@ import java.util.function.Predicate;
 import static org.example.date_format.DateFormats.HUMAN_READABLE_TIME_FORMAT;
 import static org.example.menu.MenuMessages.*;
 
+/**
+ * Handles user menu logic
+ */
 public class MenuHandler {
+    /**
+     * List of valid menu navigation keys. Each of these is supposed to open a
+     * new menu dialog
+     */
     private final List<String> VALID_MENU_CHOICES = List.of(
             "1", "2", "3", "4");
+    /**
+     * Yes or no navigation inputs to check for user's consent
+     */
     private final List<String> VALID_CONTINUE_CHOICES = List.of("Y", "N");
+    /**
+     * Singleton instance
+     */
     @Getter
     private static final MenuHandler instance = new MenuHandler();
-
+    /**
+     * Private singleton constructor
+     */
     private MenuHandler() { }
+    /**
+     * User input stream
+     */
     private final BufferedReader reader =
             new BufferedReader(new InputStreamReader(System.in));
+    /**
+     * User input validator
+     */
     private final UserInputValidator validator = UserInputValidator.getInstance();
+    /**
+     * EventService instance. The proper implementation provided to this interface is
+     * determined by the EventServiceProvider class.
+     */
     private final EventService service = EventServiceProvider.getInstance().getEventService();
-
-    public void runMenu() throws IOException {
+    /**
+     * Main menu method of this class. Runs all other menus
+     */
+    public void runMenu() {
         System.out.println(WELCOME_MESSAGE);
         var userChoice = "";
 
         do {
             System.out.println(MAIN_MENU);
-                userChoice = readInputFromUser();
+                userChoice = readInputFromUserDefaultToEmpty();
                 callServiceAccordingToInput(userChoice);
         } while(VALID_MENU_CHOICES.contains(userChoice));
     }
 
+    /**
+     * Runs different operations according to user's input:
+     *  * 1 -> saves new event(s)
+     *  * 2 -> removes existing event(s)
+     *  * 3 -> gets event by starting date time
+     *  * 4 -> finds all saved events
+     *  * all other inputs -> quits the app
+     * @param input User input
+     */
     private void callServiceAccordingToInput(String input) {
         switch (input) {
             case "1":
@@ -55,7 +91,7 @@ public class MenuHandler {
                 promptContinuouslyUntilCRUD(this::removeEventByUserPromptTime);
                 break;
             case "3":
-                final Optional<Event> evt = getEventByPromptingUserForDate();
+                final Optional<Event> evt = getEventByPromptingUserForDateTime();
                 if(evt.isPresent()) {
                     System.out.println(EVENT_FOUND_MESSAGE);
                     System.out.println(evt.get());
@@ -75,7 +111,12 @@ public class MenuHandler {
                 break;
         }
     }
-
+    /**
+     * Generic method for repeated prompting of the user until something is written in the
+     * database (CUD operations)
+     * @param operationFunc Operation to be executed. Supposed to return true if operation
+     *                      was successful, false otherwise.
+     */
     private void promptContinuouslyUntilCRUD(BooleanSupplier operationFunc) {
         boolean shouldContinue;
         do {
@@ -84,7 +125,12 @@ public class MenuHandler {
             shouldContinue = promptUserForYesOrNo();
         } while(shouldContinue);
     }
-
+    /**
+     * Continuously prompts user until the user gives a 'Y' or 'N'.
+     * Used to check for user's consent.
+     * @return True if user has typed 'Y' after continuous prompting,
+     * false if user has typed 'N' after continuous prompting.
+     */
     private boolean promptUserForYesOrNo() {
         String userChoice;
         boolean userChoseYorN;
@@ -98,15 +144,24 @@ public class MenuHandler {
 
         return userChoice.equals("Y");
     }
-
+    /**
+     * Re-attempts operation until successful outcome. Used in CUD-type operations
+     * @param operation CUD type function that returns true if operation completed successfully,
+     *                  false otherwise
+     */
     private void reAttemptOperationUnlessSuccessful(BooleanSupplier operation) {
         boolean successfulSave;
         do {
             successfulSave = operation.getAsBoolean();
         } while (!successfulSave);
     }
-
-    private Optional<Event> getEventByPromptingUserForDate() {
+    /**
+     * Continuously prompts user for date-time and searches the saved records for
+     * an event with given date-time
+     * @return Optional with Event at the date-time fetched from the user,
+     * empty optional if no event was scheduled for that date-time.
+     */
+    private Optional<Event> getEventByPromptingUserForDateTime() {
         try {
             final LocalDateTime dateTime = getDateTimeFromPrompt();
             return service.getByStart(dateTime);
@@ -115,7 +170,10 @@ public class MenuHandler {
             return Optional.empty();
         }
     }
-
+    /**
+     * Prompts the user to create a new event object, then schedules and saves it.
+     * @return True if scheduling was successful, false otherwise
+     */
     private boolean getEventFromUserAndSaveIt() {
         Event newEvent;
         try {
@@ -135,13 +193,21 @@ public class MenuHandler {
 
         return isSaveSuccessful;
     }
-
+    /**
+     * Continuously prompts user to get a LocalDateTime instance
+     * @return LocalDateTime instance gathered from user's input
+     * @throws IOException If user's input is invalid
+     */
     private LocalDateTime getDateTimeFromPrompt() throws IOException {
         return getDateTimeFromString(
                 getProperInputFromUser(ENTER_START_DATE_MESSAGE,
                         validator::isTimeInputValid));
     }
-
+    /**
+     * Calls the EventService to remove an event at a date-time
+     * prompted from the user.
+     * @return true if removal is successful, false otherwise
+     */
     private boolean removeEventByUserPromptTime() {
         LocalDateTime evtStart;
         boolean removalSuccessful;
@@ -163,7 +229,11 @@ public class MenuHandler {
 
         return false;
     }
-
+    /**
+     * Gets the event object from the user by continuous prompting and error handling.
+     * @return Event object gathered from the user's input
+     * @throws IOException If the user's input is invalid
+     */
     private Event getNewEventByPromptingUser() throws IOException {
         val eventName = getProperInputFromUser(ENTER_NAME_MESSAGE,
                 validator::isStringInputValid);
@@ -188,7 +258,13 @@ public class MenuHandler {
 
         return new Event(startingTime, endingTime, eventName, eventDescription);
     }
-
+    /**
+     * Converts user's time input into a date-time instance. Defaults to 'today'
+     * for date part
+     * @param input User's text input
+     * @return LocalDateTime instance
+     * @throws IOException if the user's input is invalid
+     */
     private LocalDateTime getDateTimeFromString(String input) throws IOException {
         final LocalDate today = LocalDate.now();
         LocalTime startingTime = null;
@@ -204,7 +280,13 @@ public class MenuHandler {
 
         return LocalDateTime.of(today, startingTime);
     }
-
+    /**
+     * Generic method that continuously prompts user for input, until the validator func is not satisfied
+     * @param displayText Text to display to the user
+     * @param validatorFunc Function that validates user's input
+     * @return Correct user input as a String
+     * @throws IOException if the user's input is invalid
+     */
     private String getProperInputFromUser(String displayText, Predicate<String> validatorFunc)
                 throws IOException {
         System.out.println(displayText);
@@ -220,11 +302,18 @@ public class MenuHandler {
 
         return userInput;
     }
-
+    /**
+     * Reads input from the user
+     * @return User's input
+     * @throws IOException If the user's input is invalid (i.e. issues with the input stream, crashes etc.)
+     */
     private String readInputFromUser() throws IOException {
         return reader.readLine().trim();
     }
-
+    /**
+     * Defaults all malformed user inputs to an empty string
+     * @return User's input or empty string if user's input is malformed
+     */
     private String readInputFromUserDefaultToEmpty() {
         try {
             return readInputFromUser();
